@@ -91,27 +91,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         r.store(false, Ordering::SeqCst);
     });
 
-    let api_key = std::env::var("OPENROUTER_API_KEY").map_err(|_| {
-        let error_msg = "
-╔════════════════════════════════════════════════════════════════╗
-║                         ERROR                                   ║
-║ OPENROUTER_API_KEY environment variable is not set             ║
-║                                                                ║
-║ Please set it by running:                                      ║
-║ export OPENROUTER_API_KEY='your-api-key'                       ║
-║                                                                ║
-║ You can get an API key from:                                   ║
-║ https://openrouter.ai/keys                                     ║
-╚════════════════════════════════════════════════════════════════╝
-";
-        eprintln!("{}", error_msg);
-        std::io::Error::new(std::io::ErrorKind::NotFound, "OPENROUTER_API_KEY not set")
-    })?;
-
     let matches = App::new("Creature")
         .version("0.1.0")
         .author("BasedAI")
         .about("Adaptive AI Colony Simulation")
+        .arg(Arg::with_name("model")
+            .short('l')
+            .long("model")
+            .value_name("MODEL")
+            .help("Sets the Ollama model to use (default: llama3.1:8b)")
+            .takes_value(true))
         .arg(Arg::with_name("mission")
             .short('m')
             .long("mission")
@@ -148,8 +137,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         
     let colony_name = matches.value_of("name").unwrap_or("Unnamed");
     
+    let model = matches.value_of("model")
+        .unwrap_or("llama3.1:8b")
+        .to_string();
 
-    let api_client = api::openrouter::OpenRouterClient::new(api_key.clone())
+    let api_client = api::ollama::OllamaClient::new(model)
         .map_err(|e| e as Box<dyn std::error::Error>)?;
     let mut colony = Colony::new(&mission, api_client);
 
@@ -391,8 +383,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             eprintln!("Error updating mission progress: {}", e);
         }
         
-        // Memory compression (every other cycle)
-        if current_cycle % 2 == 0 {
+         // Memory compression (every other cycle)
+         if current_cycle % 2 == 0 {
             let compression_animation = ThinkingAnimation::new(AnimationConfig {
                 style: AnimationStyle::Progress,
                 message: "Compressing colony memories".to_string(),

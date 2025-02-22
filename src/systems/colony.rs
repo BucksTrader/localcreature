@@ -15,7 +15,7 @@ use std::path::Path;
 use std::collections::VecDeque;
 use crate::models::plan_analysis::{PlanAnalysis, save_plan_to_file};
 use crate::models::constants::{MAX_THOUGHTS_FOR_PLAN, NEIGHBOR_DISTANCE_THRESHOLD, BATCH_SIZE};
-use crate::api::openrouter::OpenRouterClient;
+use crate::api::ollama::OllamaClient;
 use crate::systems::cell::Cell;
 use std::collections::HashMap;
 use chrono::Utc;
@@ -25,7 +25,7 @@ use rand::{Rng, seq::SliceRandom};
 pub struct Colony {
     pub cells: HashMap<Uuid, Cell>,
     pub mission: String,
-    pub api_client: OpenRouterClient,
+    pub api_client: OllamaClient,
     pub cell_positions: HashMap<Uuid, Coordinates>,
     plan_leaderboard: HashMap<Uuid, (usize, usize)>, // (thought_count, unique_collaborations)
 }
@@ -105,7 +105,7 @@ impl Colony {
     }
 
 
-    pub fn new(mission: &str, api_client: OpenRouterClient) -> Self {
+    pub fn new(mission: &str, api_client: OllamaClient) -> Self {
         Self {
             cells: HashMap::new(),
             mission: mission.to_string(),

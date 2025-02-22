@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 use crate::models::types::{CellContext, Coordinates, DimensionalPosition, Plan, RealTimeContext, Thought};
 use crate::models::thought_io::{EventInput, EventOutput, ThoughtIO};
 use crate::models::constants::MAX_MEMORY_SIZE;
-use crate::api::openrouter::OpenRouterClient;
+use crate::api::ollama::OllamaClient;
 use crate::systems::ltl::{ExtendedNeighborhood, EnhancedCellState, InteractionEffect};
 use std::collections::{HashMap, VecDeque};
 use std::error::Error;
@@ -86,7 +86,7 @@ impl Cell {
 
     pub async fn update_with_ltl_rules(
         &mut self, 
-        api_client: &OpenRouterClient,
+        api_client: &OllamaClient,
         other_cells: &[(Uuid, Coordinates)]
     ) -> Result<(), Box<dyn Error>> {
         self.neighborhood.update_neighbors(&self.position, other_cells);
@@ -168,7 +168,7 @@ impl Cell {
 
     pub async fn generate_thought(
         &mut self,
-        api_client: &OpenRouterClient,
+        api_client: &OllamaClient,
         mission: &str,
     ) -> Result<(), Box<dyn std::error::Error>> {
         // First evaluate dimensional state
@@ -371,7 +371,7 @@ Generated Thought:");
         Ok(())
     }
 
-    pub async fn check_and_compress_memories(&mut self, api_client: &OpenRouterClient) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn check_and_compress_memories(&mut self, api_client: &OllamaClient) -> Result<(), Box<dyn std::error::Error>> {
         let total_size: usize = self.thoughts.iter().map(|t| t.content.len()).sum();
 
         if total_size > MAX_MEMORY_SIZE {
